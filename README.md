@@ -7,6 +7,10 @@ Step Converter is a free Windows app that **converts 3D models** between **STEP,
 - **Compare presets** side by side, using accuracy numbers instead of guesswork.
 - Every setting is explained in the app. Point at a setting to read what it does, or press **F1** for the full [user guide](docs/USER_GUIDE.md).
 
+![Step Converter with the example monkey sculpt: the 230,000-face original on the left, the 20,000-quad result with wireframe on the right](docs/images/monkey-example.png)
+
+*The example sculpt `samples/monkeyGeo.fbx` remeshed with preset 01 and Target faces 20,000. The result is 20,732 faces, 100% quads, within 0.008% of the original on average.*
+
 No Blender, CAD program or other software is needed. Blender and Instant Meshes are optional extras.
 
 ---
