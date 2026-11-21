@@ -1,0 +1,96 @@
+name: Build Windows release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number for the files (for example 0.2.0)"
+        required: false
+        default: "0.0.0-dev"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF#refs/tags/v}"; else V="${{ github.event.inputs.version }}"; fi
+          echo "VERSION=${V:-0.0.0-dev}" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Tests
+        run: python -m pytest -q tests
+
+      - name: Build folder app (installer + portable zip)
+        run: pyinstaller --noconfirm packaging/step_converter.spec
+
+      - name: Smoke test the built app
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force smoke | Out-Null
+          $p = Start-Process dist\StepConverter\StepConverter.exe -Wait -PassThru -ArgumentList @('remesh','samples\monkeyGeo.fbx','smoke\m.step','smoke\m.stl','--preset','"presets\08 Fast preview.json"')
+          if ($p.ExitCode -ne 0) { throw "remesh failed: $($p.ExitCode)" }
+          $p = Start-Process dist\StepConverter\StepConverter.exe -Wait -PassThru -ArgumentList @('convert','smoke\m.step','smoke\m2.obj')
+          if ($p.ExitCode -ne 0) { throw "STEP read failed: $($p.ExitCode)" }
+          Get-ChildItem smoke
+          foreach ($f in 'm.step','m.stl','m2.obj') { if (-not (Test-Path "smoke\$f")) { Get-Content "$env:APPDATA\StepConverter\step_converter.log" -ErrorAction SilentlyContinue; throw "missing $f" } }
+
+      - name: Portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist\StepConverter\samples, dist\StepConverter\tools | Out-Null
+          Copy-Item samples\monkeyGeo.fbx dist\StepConverter\samples\
+          Copy-Item tools\README.txt dist\StepConverter\tools\
+          Compress-Archive -Path dist\StepConverter -DestinationPath "dist\StepConverter-portable-$env:VERSION.zip"
+
+      - name: Installer
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force dist\StepConverter\samples, dist\StepConverter\tools
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$env:VERSION" packaging\installer.iss
+
+      - name: Single-file exe
+        shell: pwsh
+        run: |
+          $env:STEPCONV_ONEFILE = "1"
+          pyinstaller --noconfirm packaging/step_converter.spec
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StepConverter-${{ env.VERSION }}
+          path: |
+            dist/StepConverter.exe
+            dist/StepConverter-Setup-*.exe
+            dist/StepConverter-portable-*.zip
+          if-no-files-found: error
+
+      - name: Draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            dist/StepConverter.exe
+            dist/StepConverter-Setup-*.exe
+            dist/StepConverter-portable-*.zip

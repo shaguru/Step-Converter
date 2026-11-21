@@ -1,0 +1,11 @@
+env/
+__pycache__/
+*.pyc
+out/
+tools/*
+!tools/README.txt
+.pytest_cache/
+dist/
+build/
+smoke/
+Export/
