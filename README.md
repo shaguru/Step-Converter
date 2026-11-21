@@ -141,7 +141,7 @@ presets/  samples/  tests/  tools/
 
 - Run the tests: `env\Scripts\python -m pytest tests`
 - If you edit `stepfable/help_text.py`, run `env\Scripts\python scripts\build_docs.py` to refresh the guide.
-- **Releases**: push a tag such as `v0.2.0`, or run the *Build Windows release* workflow by hand. GitHub Actions builds the installer, the single-file exe and the portable zip, then attaches them to a **draft** release. Check it, then press *Publish*.
+- **Releases**: push a tag such as `v0.2.0`, or run the *Build Windows release* workflow by hand (Actions tab → Run workflow, tick *draft release*). GitHub Actions builds the installer, the single-file exe and the portable zip, then attaches them to a **draft** release. Check it, then press *Publish*.
 - To build locally: `env\Scripts\pip install pyinstaller` and then `env\Scripts\pyinstaller packaging\step_converter.spec`. The installer also needs [Inno Setup 6](https://jrsoftware.org/isinfo.php): run `iscc packaging\installer.iss`.
 
 ## Licence

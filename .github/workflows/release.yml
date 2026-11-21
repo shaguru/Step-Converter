@@ -9,6 +9,10 @@ on:
         description: "Version number for the files (for example 0.2.0)"
         required: false
         default: "0.0.0-dev"
+      draft_release:
+        description: "Also create a draft release v<version> with the files"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -85,9 +89,12 @@ jobs:
           if-no-files-found: error
 
       - name: Draft release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.draft_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: Step Converter ${{ env.VERSION }}
           draft: true
           generate_release_notes: true
           files: |
