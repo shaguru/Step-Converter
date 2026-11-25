@@ -83,6 +83,7 @@ Each remesh runs seven stages. Each stage is a box in the settings panel.
 | 4 Reduce | Brings the face count down | **Target faces** (the main size and accuracy control) |
 | 5 Quads | Turns triangles into quads (100% quads with the built-in method) | *Method* |
 | 6 Relax + snap | Evens out the quads and snaps them back onto the surface | *Snap to* |
+| 6b Flat faces (optional) | For hard-surface models: makes flat regions exactly flat and writes each as one CAD face in STEP | *Exact flat faces* |
 | 7 Measure | Compares with the original and fills in the Runs table | |
 
 The **[user guide](docs/USER_GUIDE.md)** explains every setting: what it does, what raising or lowering it changes, and good values for CNC and for 3D printing. It also covers recipes, how to read the Runs table, STEP options and troubleshooting. The app shows the same guide under **? Help** (F1).

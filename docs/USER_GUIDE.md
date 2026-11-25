@@ -101,6 +101,9 @@ A preset is a saved set of all the settings. Pick one from the **Preset** menu, 
 | **06 Blender QuadriFlow - clean loops** | Cleaner, flowing edge loops. Needs Blender installed. |
 | **07 Instant Meshes - field aligned** | Similar to QuadriFlow, using Instant Meshes. Needs Instant Meshes in the tools folder. |
 | **08 Fast preview** | A quick, rough look at a new model (about 2,000 quads). |
+| **09 Hard surface CAD - flat faces and bevels** | Mechanical or hard-surface models going to CAD. Flat regions become single exact CAD faces; bevels stay as triangles. |
+| **10 Hard surface CAD - crisp bevel facets** | Like 09, but also catches narrow bevel and chamfer facets and refines the remaining areas. Crisper edges, takes about a minute longer. |
+| **11 Decimation Master style - keep sculpt detail** | Decimates to about 75,000 triangles while keeping sculpted detail, like ZBrush Decimation Master. Good for STL and 3D printing. |
 
 **Not sure which to use?** Press **Compare presets…**, tick 01, 02, 04 and 08, and let them run together. Then look at the Runs table and the deviation colours.
 
@@ -175,6 +178,18 @@ Evens out the quads so they are similar in size, and snaps every corner back ont
 | **Relax iterations** | How many times the quads are evened out. After each pass every point is snapped back onto the surface. | 3 to 8 is typical. 0 skips relaxing (the points are still snapped once). More makes squarer, more even quads. |
 | **Relax strength** | How far each point moves per relax pass (0 = not at all, 1 = fully). | 0.5 is balanced. Lower is gentler on fine detail. |
 | **Snap to** | Which surface the quads are snapped onto. | Smoothed surface keeps the bumps you removed in step 3 away. Original sculpt hugs the raw model, bumps included, for the most faithful copy. Don't snap leaves points where the quad step put them (fastest, least accurate). |
+
+### 6b Flat faces (hard surface)
+
+For mechanical and hard-surface models: finds the flat regions, fits an exact plane to each, snaps the mesh onto it (hard edges land exactly where two planes meet) and writes every flat region into STEP as one CAD face. Bevels and rounded areas stay as triangles.
+
+| Setting | What it does | How to set it |
+|---|---|---|
+| **Exact flat faces** | Finds the flat regions of the model, makes them perfectly flat and writes each one into the STEP file as a single face instead of many triangles. | Turn it on for hard-surface and mechanical models. It needs Quads method "Keep triangles". Smaller STEP files, flat faces you can click in CAD, crisp straight edges. |
+| **Flat tolerance %** | How far a point may be from a plane (as % of the model size) and still belong to that flat face. | 0.03 suits decimated or slightly noisy models. Lower (0.01) on clean CAD-like meshes; higher (0.05 to 0.1) if flat faces come out patchy. Too high swallows gentle bevels. |
+| **Max snap move %** | Snapping never moves a point further than this. Where it would have to (shallow angles, bevels), those faces stay triangles instead. | 0.02 keeps the shape faithful. Raise it for more and larger flat faces. |
+| **Smallest flat face %** | The smallest flat face that is looked for, as a % of the model's total surface area. | 0.05 finds the main flat faces. Lower it (0.003) to also catch narrow bevel and chamfer facets; together with Max snap move 0.04 that gives crisper edges and fewer STEP faces. |
+| **Refine free areas (trials)** | Tries random edge flips in the areas that are not flat: two neighbouring triangles swap their shared diagonal, and the swap is kept only if they then fit the original better. Points never move, so flat faces and the face count stay the same. | 0 is off. 50,000 trials (about a minute) brings the bevels and soft edges a few percent closer; more trials give smaller extra gains. |
 
 ### 7. Measure
 

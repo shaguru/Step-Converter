@@ -69,6 +69,25 @@ def test_pipeline_and_smooth_step(tmp_path):
     assert ok and abs(vol - 4 / 3 * np.pi) / (4 / 3 * np.pi) < 0.02
 
 
+def test_flat_faces_merge_into_one_step_face_each(tmp_path):
+    import trimesh
+    box = trimesh.creation.box((2.0, 1.0, 0.5))
+    box = box.subdivide().subdivide().subdivide()
+    rng = np.random.default_rng(0)
+    v = box.vertices + rng.normal(0, 2e-5, box.vertices.shape)     # slightly noisy, like a decimated scan
+    m = PolyMesh.from_triangles(v, box.faces, "box")
+    p = RemeshParams(smooth_method="none", reduce_method="quadric", target_faces=600, quad_method="none",
+                     relax_iterations=0, project_to="none", flat_faces=True)
+    r, rep = run_pipeline(m, p)
+    assert rep["flat_planes"] == 6
+    path = str(tmp_path / "b.step")
+    info = io.save(r, path)
+    from stepfable.hard_surface import merged_faces
+    assert len(merged_faces(r)) == 6
+    ok, vol = step_solid(path)
+    assert ok and abs(vol - 1.0) < 1e-3
+
+
 def test_every_setting_is_documented():
     from dataclasses import fields
     from stepfable import help_text

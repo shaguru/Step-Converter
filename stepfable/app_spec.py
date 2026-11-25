@@ -7,5 +7,6 @@ PARAM_GROUPS = [
     ('4  Reduce', ['reduce_method', 'target_faces', 'isotropic_iterations', 'preserve_boundary']),
     ('5  Quads', ['quad_method', 'quad_feature_angle', 'quadriflow_preserve_sharp', 'quadriflow_symmetry', 'instant_crease_angle', 'instant_smooth_iters']),
     ('6  Relax + snap', ['relax_iterations', 'relax_strength', 'project_to']),
+    ('6b Flat faces (hard surface)', ['flat_faces', 'flat_tolerance_pct', 'flat_max_move_pct', 'flat_min_area_pct', 'flat_refine_trials']),
     ('7  Measure', ['measure', 'measure_samples']),
 ]

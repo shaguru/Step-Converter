@@ -71,6 +71,12 @@ class RemeshParams:
     relax_iterations: int = 5
     relax_strength: float = 0.5
     project_to: str = "smoothed"          # "smoothed" | "original" | "none"
+    # 6b hard-surface flat faces
+    flat_faces: bool = False              # snap flat regions onto exact planes (one STEP face each)
+    flat_tolerance_pct: float = 0.03      # how far from a plane a point may be and still count as flat
+    flat_max_move_pct: float = 0.02       # never move a point further than this when snapping
+    flat_min_area_pct: float = 0.05       # smallest flat face to look for, % of the total surface area
+    flat_refine_trials: int = 0           # random edge-flip trials in the non-flat areas (0 = off)
     # 7 measure
     measure: bool = True
     measure_samples: int = 60000
@@ -155,6 +161,7 @@ def run_pipeline(original: PolyMesh, p: RemeshParams, progress=None, extra=None)
         mesh = _from_ms(ms, name)
         tick("cleanup", t)
 
+    cleaned = mesh                                       # repaired original, used to find flat faces
     # ---- 2 voxel
     if p.voxel:
         step(0.12, "Voxel remeshing")
@@ -265,6 +272,25 @@ def run_pipeline(original: PolyMesh, p: RemeshParams, progress=None, extra=None)
         mesh = quadify.relax_and_project(mesh, proj, p.relax_iterations, p.relax_strength,
                                          fix_boundary=p.preserve_boundary)
         tick("relax", t)
+
+    # ---- 6b flat faces (hard surface)
+    if p.flat_faces:
+        step(0.85, "Finding flat faces")
+        t = time.time()
+        if not (mesh.face_sizes == 3).all():
+            report["flat_note"] = "Flat faces needs triangles (Quads method: Keep triangles); skipped."
+        else:
+            from .hard_surface import flatten
+            mesh, frep = flatten(mesh, cleaned, tol_pct=p.flat_tolerance_pct, max_move_pct=p.flat_max_move_pct,
+                                  min_area_pct=p.flat_min_area_pct)
+            report.update(frep)
+            if p.flat_refine_trials > 0:
+                from .hard_surface import refine_free_areas
+                step(0.87, "Refining free areas")
+                mesh, rrep = refine_free_areas(mesh, cleaned, trials=int(p.flat_refine_trials),
+                                               progress=lambda f, t: step(0.87 + 0.03 * f, t))
+                report.update(rrep)
+        tick("flat", t)
 
     mesh.name = name
     # ---- 7 measure

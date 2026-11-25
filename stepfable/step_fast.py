@@ -93,6 +93,11 @@ def write_step_fast(mesh: PolyMesh, path: str, mode: str = "smooth", planar_tol:
         mode = "auto"
     if _signed_volume(mesh) < 0:                 # inside-out: flip so faces point outward
         mesh = mesh.flipped()
+    lab = mesh.meta.get("flat_face_plane")
+    if (mode != "triangles" and lab is not None and len(lab) == mesh.n_faces
+            and (mesh.face_sizes == 3).all()):
+        from .hard_surface import write_step_merged   # flat regions -> one CAD face each
+        return write_step_merged(mesh, path, unit=unit, make_solid=make_solid, progress=progress)
 
     w = _Writer()
     name = (mesh.name or "StepConverter").replace("'", "")

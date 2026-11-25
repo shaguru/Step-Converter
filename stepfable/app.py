@@ -63,6 +63,13 @@ PARAM_UI = [
         ("project_to", "Snap to", "choice", {"smoothed": "Smoothed surface", "original": "Original sculpt", "none": "Don't snap"},
          "Smoothed keeps the bumps removed; Original hugs the raw sculpt."),
     ]),
+    ("6b Flat faces (hard surface)", [
+        ("flat_faces", "Exact flat faces", "bool", None, "Find flat regions, make them perfectly flat and write each as one STEP face. Needs Quads: Keep triangles."),
+        ("flat_tolerance_pct", "Flat tolerance %", "float", (0.001, 1, 0.005, 3), "Points this close to a plane (% of model size) count as part of the flat face."),
+        ("flat_max_move_pct", "Max snap move %", "float", (0.001, 1, 0.005, 3), "A point is never moved further than this; where it would be, the area stays triangles."),
+        ("flat_min_area_pct", "Smallest flat face %", "float", (0.001, 5, 0.001, 3), "Flat faces smaller than this % of the total area are not looked for. Lower it to catch narrow bevel facets."),
+        ("flat_refine_trials", "Refine free areas (trials)", "int", (0, 1000000, 10000), "Random edge flips in the non-flat areas, kept only when the fit improves. 0 = off; 50,000 takes about a minute."),
+    ]),
     ("7  Measure", [
         ("measure", "Measure accuracy", "bool", None, "Compare the result to the original after every run."),
         ("measure_samples", "Samples", "int", (2000, 2000000, 10000), "More = more precise numbers, slower."),
